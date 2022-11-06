@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# File where bookmarks are stored
+FILE=""
