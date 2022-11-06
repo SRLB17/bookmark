@@ -1,0 +1,49 @@
+#!/bin/bash
+
+source bookmark-config
+
+bookmark="$1"
+
+usage="Usage: goto [BOOKMARK]\nGo to a directory saved by 'bookmark'.\n\nBOOKMARK must be a string that has been saved by 'bookmark'."
+
+if [[ -z $bookmark ]]; then
+  echo -e $usage
+  echo -e "Saved bookmarks:"
+  bookmark list
+  return 1
+else
+  
+  matched=0
+  match=""
+
+  while read -r line
+  do
+    
+    m=$(echo $line | grep "^\($bookmark\).*$")
+
+    if [[ -n $m  ]]; then
+      matched=1
+      match="$line"
+    fi
+
+  done < "$FILE"
+
+  if [[ $matched -eq 0 ]]; then
+    echo -e "Error: BOOKMARK does not exist"
+    return 1
+  fi
+
+  d="="
+
+  dir=$(echo $match | cut -d $d -f 2)
+
+  if [[ ! -d $dir ]]; then
+    echo "Error: BOOKMARK $bookmark is not a valid directory '$dir'"
+    return 1
+  else
+    cd $dir
+    return 1
+  fi
+
+fi
+

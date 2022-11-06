@@ -1,0 +1,101 @@
+#!/bin/bash
+
+source bookmark-config
+
+# add/remove/list
+cmd="$1"
+
+# name of bookmark
+bookmark="$2"
+
+# dir
+directory=${3:-$(pwd)}
+
+usage="Usage: bookmark [COMMAND] [BOOKMARK] [DIRECTORY]\nBookmark a directory to be used by 'goto'.\n\nCOMMAND must be either add, remove, or list.\nBOOKMARK can be any combination of non-special symbol characters without spaces.\nWhen DIRECTORY is not specified, the current directory is used."
+
+if [[ -z $cmd ]]; then
+  echo -e "$usage"
+  exit 1
+fi
+
+if [[ $cmd != "add" && $cmd != "remove" && $cmd != "list" ]]; then
+  echo -e "Error: COMMAND isn't add, remove, or list"
+  echo -e "$usage"
+  exit 1
+fi
+
+if [[ $cmd == "list" ]]; then
+
+  while read -r line ; 
+  do 
+    if [[ -n $line ]]; then
+      echo ${line}
+    fi
+  done < "$FILE"
+
+  exit 1
+fi
+
+if [[ -z $bookmark ]]; then
+  echo "Error: BOOKMARK must be specified to $cmd it"
+  exit 1
+fi
+
+if [[ $cmd == "add" ]]; then
+
+  pattern="[0-9a-zA-Z]"
+
+  if [[ $bookmark =~ $pattern ]]; then
+
+    matched=$(cat $FILE | grep "^\($bookmark\).*$")
+    
+    if [[ -z $matched ]]; then
+
+      echo "$bookmark=$directory" >> $FILE
+      echo -e "Bookmark \"$bookmark\" has been successfully added"
+    else
+      echo -e "Error: Bookmark \"$bookmark\" already exists"
+    fi
+  else
+    echo -e "Error: BOOKMARK must not include any special characters"
+  fi
+  exit 1
+fi
+
+if [[ $cmd == "remove" ]]; then
+  text=""
+  exists=0
+
+  while read -r line
+  do
+    
+
+    delimiter="="
+
+    t=${line%%$delimiter*}
+
+    matched=$(echo $t | grep "^${bookmark}$")
+
+    #echo $matched
+
+    if [[ -z $matched ]]; then
+      if [[ -n $line ]]; then
+        text="$text\n$line"
+      fi
+      #echo "NULL LINE ($line)"
+    else
+      exists=1
+    fi
+
+  done < "$FILE"
+
+  if [[ $exists -eq 0 ]]; then
+    echo -e "Error: Bookmark \"$bookmark\" not found. Try 'bookmark list' to see stored bookmarks."
+  else
+    echo -e "$text" > $FILE
+    echo -e "Bookmark \"$bookmark\" has been successfully deleted."
+  fi
+
+  exit 1
+
+fi  
